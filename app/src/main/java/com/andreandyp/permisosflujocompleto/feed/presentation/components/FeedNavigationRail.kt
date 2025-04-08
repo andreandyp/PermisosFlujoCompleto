@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.PostAdd
-import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
@@ -30,8 +29,12 @@ import com.andreandyp.permisosflujocompleto.core.presentation.theme.PermisosFluj
 @Composable
 fun FeedNavigationRail(
     showFab: Boolean,
+    hasCameraPermission: Boolean,
+    hasMediaPermission: Boolean,
     currentDestination: AppDestinations,
     onClickNewPost: () -> Unit,
+    onClickAddVisualMedia: () -> Unit,
+    onClickAddPhoto: () -> Unit,
     onClickItem: (AppDestinations) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -49,20 +52,14 @@ fun FeedNavigationRail(
                             ExpandedFabData(
                                 icon = Icons.Default.AddAPhoto,
                                 contentDescription = R.string.description_add_photo,
-                                isEnabled = false,
-                                onClick = { },
+                                isEnabled = hasCameraPermission,
+                                onClick = onClickAddPhoto
                             ),
                             ExpandedFabData(
                                 icon = Icons.Default.AddPhotoAlternate,
                                 contentDescription = R.string.description_add_image,
-                                isEnabled = false,
-                                onClick = { },
-                            ),
-                            ExpandedFabData(
-                                icon = Icons.Default.VideoCall,
-                                contentDescription = R.string.description_add_video,
-                                isEnabled = false,
-                                onClick = { },
+                                isEnabled = hasMediaPermission,
+                                onClick = onClickAddVisualMedia,
                             ),
                             ExpandedFabData(
                                 icon = Icons.Default.PostAdd,
@@ -100,8 +97,12 @@ private fun FeedNavigationRailPreview() {
         Surface {
             FeedNavigationRail(
                 showFab = true,
+                hasCameraPermission = true,
+                hasMediaPermission = true,
                 currentDestination = AppDestinations.FEED,
                 onClickNewPost = {},
+                onClickAddVisualMedia = {},
+                onClickAddPhoto = {},
                 onClickItem = {},
             )
         }

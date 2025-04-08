@@ -18,22 +18,25 @@ import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Publish
-import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
@@ -43,21 +46,30 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.andreandyp.permisosflujocompleto.R
 import com.andreandyp.permisosflujocompleto.core.domain.models.AllowedMediaPost
+import com.andreandyp.permisosflujocompleto.core.domain.models.Media
 import com.andreandyp.permisosflujocompleto.core.presentation.theme.PermisosFlujoCompletoTheme
+import com.andreandyp.permisosflujocompleto.feed.presentation.components.BottomSheetGallery
 import com.andreandyp.permisosflujocompleto.feed.presentation.state.NewPostState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewPostLayout(
     showBackButton: Boolean,
+    hasCameraPermission: Boolean,
+    hasFullMediaPermission: Boolean,
+    hasPartialMediaPermission: Boolean,
+    showBottomSheet: Boolean,
+    bottomSheetState: SheetState,
     state: NewPostState,
     onBack: () -> Unit,
-    onClickNewPhoto: () -> Unit,
-    onClickNewImage: () -> Unit,
-    onClickNewVideo: () -> Unit,
+    onClickAddPhoto: () -> Unit,
+    onClickAddVisualMedia: () -> Unit,
     onChangePostDescription: (String) -> Unit,
     onClickUpload: () -> Unit,
-    onClickRetry: () -> Unit,
+    onClickRetry: (AllowedMediaPost) -> Unit,
+    onDismissGallery: () -> Unit,
+    onClickPartialAccessButton: () -> Unit,
+    onClickMedia: (Media) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -129,24 +141,29 @@ fun NewPostLayout(
 
                 when (state.newMedia) {
                     AllowedMediaPost.PHOTO -> {
-                        NewImage(onClick = onClickNewImage)
-                        NewVideo(onClick = onClickNewVideo)
+                        NewVisualMedia(
+                            hasImagesPermission = hasFullMediaPermission || hasPartialMediaPermission,
+                            onClick = onClickAddVisualMedia,
+                        )
                     }
 
-                    AllowedMediaPost.IMAGE -> {
-                        NewPhoto(onClick = onClickNewPhoto)
-                        NewVideo(onClick = onClickNewVideo)
+                    AllowedMediaPost.MEDIA -> {
+                        NewPhoto(
+                            hasCameraPermission = hasCameraPermission,
+                            onClick = onClickAddPhoto,
+                        )
                     }
 
-                    AllowedMediaPost.VIDEO -> {
-                        NewPhoto(onClick = onClickNewPhoto)
-                        NewImage(onClick = onClickNewImage)
-                    }
 
                     null -> {
-                        NewPhoto(onClick = onClickNewPhoto)
-                        NewImage(onClick = onClickNewImage)
-                        NewVideo(onClick = onClickNewVideo)
+                        NewPhoto(
+                            hasCameraPermission = hasCameraPermission,
+                            onClick = onClickAddPhoto,
+                        )
+                        NewVisualMedia(
+                            hasImagesPermission = hasFullMediaPermission || hasPartialMediaPermission,
+                            onClick = onClickAddVisualMedia,
+                        )
                     }
                 }
             }
@@ -166,50 +183,70 @@ fun NewPostLayout(
             }
             when (state.newMedia) {
                 AllowedMediaPost.PHOTO -> {
-                    RetryButton(textId = R.string.retry_photo_post, onClickRetry = onClickRetry)
+                    RetryButton(
+                        textId = R.string.retry_photo_post,
+                        onClickRetry = { onClickRetry(state.newMedia) },
+                    )
                 }
 
-                AllowedMediaPost.IMAGE -> {
-                    RetryButton(textId = R.string.retry_image_post, onClickRetry = onClickRetry)
-                }
-
-                AllowedMediaPost.VIDEO -> {
-                    RetryButton(textId = R.string.retry_video_post, onClickRetry = onClickRetry)
+                AllowedMediaPost.MEDIA -> {
+                    RetryButton(
+                        textId = R.string.retry_image_post,
+                        onClickRetry = { onClickRetry(state.newMedia) },
+                    )
                 }
 
                 null -> {}
 
             }
         }
+        if (showBottomSheet) {
+            BottomSheetGallery(
+                hasPartialMediaPermission = hasPartialMediaPermission,
+                bottomSheetState = bottomSheetState,
+                state = state,
+                onDismiss = onDismissGallery,
+                onClickPartialAccessButton = onClickPartialAccessButton,
+                onClickMedia = onClickMedia,
+            )
+        }
     }
 }
 
 @Composable
-private fun NewPhoto(onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun NewPhoto(
+    hasCameraPermission: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     IconButton(onClick = onClick, modifier = modifier) {
         Icon(
             imageVector = Icons.Default.AddAPhoto,
             contentDescription = stringResource(id = R.string.description_add_photo),
+            tint = if (hasCameraPermission) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                Color.Gray
+            }
         )
     }
 }
 
 @Composable
-private fun NewImage(onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun NewVisualMedia(
+    hasImagesPermission: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     IconButton(onClick = onClick, modifier = modifier) {
         Icon(
             imageVector = Icons.Default.AddPhotoAlternate,
             contentDescription = stringResource(R.string.description_add_image),
-        )
-    }
-}
-
-@Composable
-private fun NewVideo(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    IconButton(onClick = onClick, modifier = modifier) {
-        Icon(
-            imageVector = Icons.Default.VideoCall,
-            contentDescription = stringResource(R.string.description_add_video),
+            tint = if (hasImagesPermission) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                Color.Gray
+            }
         )
     }
 }
@@ -234,6 +271,7 @@ private fun RetryButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @PreviewLightDark
 @Composable
 private fun NewTextPostLayoutPreview() {
@@ -241,19 +279,55 @@ private fun NewTextPostLayoutPreview() {
         Surface {
             NewPostLayout(
                 showBackButton = true,
+                hasCameraPermission = true,
+                hasFullMediaPermission = true,
+                hasPartialMediaPermission = false,
+                showBottomSheet = false,
+                bottomSheetState = rememberModalBottomSheetState(),
                 state = NewPostState(userName = "André", postDescription = "Hola"),
                 onBack = {},
-                onClickNewPhoto = {},
-                onClickNewImage = {},
-                onClickNewVideo = {},
+                onClickAddPhoto = {},
+                onClickAddVisualMedia = {},
                 onChangePostDescription = {},
                 onClickUpload = {},
                 onClickRetry = {},
+                onDismissGallery = {},
+                onClickPartialAccessButton = {},
+                onClickMedia = {},
             )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@PreviewLightDark
+@Composable
+private fun NewPostPermissionsLayoutPreview() {
+    PermisosFlujoCompletoTheme {
+        Surface {
+            NewPostLayout(
+                showBackButton = true,
+                hasCameraPermission = false,
+                hasFullMediaPermission = false,
+                hasPartialMediaPermission = false,
+                showBottomSheet = false,
+                bottomSheetState = rememberModalBottomSheetState(),
+                state = NewPostState(userName = "André", postDescription = "Hola"),
+                onBack = {},
+                onClickAddPhoto = {},
+                onClickAddVisualMedia = {},
+                onChangePostDescription = {},
+                onClickUpload = {},
+                onClickRetry = {},
+                onDismissGallery = {},
+                onClickPartialAccessButton = {},
+                onClickMedia = {},
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @PreviewLightDark
 @Composable
 private fun NewMediaPostLayoutPreview() {
@@ -261,18 +335,25 @@ private fun NewMediaPostLayoutPreview() {
         Surface {
             NewPostLayout(
                 showBackButton = true,
+                hasCameraPermission = true,
+                hasFullMediaPermission = true,
+                hasPartialMediaPermission = false,
+                showBottomSheet = false,
+                bottomSheetState = rememberModalBottomSheetState(),
                 state = NewPostState(
                     userName = "André",
                     mediaUri = "",
                     newMedia = AllowedMediaPost.PHOTO
                 ),
                 onBack = {},
-                onClickNewPhoto = {},
-                onClickNewImage = {},
-                onClickNewVideo = {},
+                onClickAddPhoto = {},
+                onClickAddVisualMedia = {},
                 onChangePostDescription = {},
                 onClickUpload = {},
                 onClickRetry = {},
+                onDismissGallery = {},
+                onClickPartialAccessButton = {},
+                onClickMedia = {},
             )
         }
     }

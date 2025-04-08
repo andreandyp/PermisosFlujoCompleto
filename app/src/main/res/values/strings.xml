@@ -44,4 +44,21 @@
     <string name="settings_all_data_deleted">Se han borrado todas las publicaciones</string>
     <string name="description_profile_picture">Foto de perfil</string>
     <string name="description_post_media_feed">Imagen o video de la publicación</string>
+    <string name="ask_permission_top_bar_title">Una cosa más…</string>
+    <string name="ask_permission_title">Necesitamos tu permiso</string>
+    <string name="ask_permission_message_photos">Necesitamos que nos permitas acceder a la cámara para añadir fotos a tu publicación.</string>
+    <string name="ask_permission_message_media">Necesitamos que nos permitas acceder a tus imágenes y videos para poder añadirlas a tu publicación.</string>
+    <string name="ask_permission_extra">Si no nos das el permiso, no te preocupes. Podrás seguir creando y subiendo publicaciones sin contenido multimedia.</string>
+    <string name="ask_permission_reject">Omitir</string>
+    <string name="ask_permission_grant">Otorgar permiso</string>
+    <string name="denied_permission_title">Permiso denegado</string>
+    <string name="denied_permission_message_rationale">No nos diste los permisos necesarios. Danos los permisos necesarios para poder añadir archivos multimedia a tus publicaciones.</string>
+    <string name="denied_permission_message">No nos diste los permisos necesarios. Puedes usar el resto de la app o ir a la configuración del sistema para darnos los permisos solicitados.</string>
+    <string name="denied_permission_go_to_settings">Ir a la configuración</string>
+    <string name="denied_permission_close">Cerrar</string>
+    <string name="media_picker_date_label">Archivos del %s</string>
+    <string name="media_picker_date_format">dd/MMM/yyyy</string>
+    <string name="has_partial_access">Solo nos diste acceso a ciertas fotos y videos</string>
+    <string name="has_partial_access_add_more">Administrar</string>
+    <string name="media_picker_empty_label">No hay archivos para mostrar</string>
 </resources>

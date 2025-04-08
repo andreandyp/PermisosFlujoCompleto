@@ -14,9 +14,12 @@ import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -140,21 +143,37 @@ private fun SmallExpandableFabs(
             ) { it } + fadeOut(tween(DURATION_MS, exitDelay)),
             modifier = modifier,
         ) {
-            SmallFloatingActionButton(
-                onClick = {
-                    if (data.isEnabled) {
-                        onClickSmallFab()
-                        data.onClick()
-                    }
-                },
-                containerColor = if (data.isEnabled) FloatingActionButtonDefaults.containerColor else Color.Gray,
-            ) {
-                Icon(
-                    imageVector = data.icon,
-                    contentDescription = stringResource(id = data.contentDescription),
-                )
+            if (data.isEnabled.not()) {
+                BadgedBox(
+                    badge = { Badge(containerColor = MaterialTheme.colorScheme.error) {} },
+                ) {
+                    SmallFab(data = data, onClickSmallFab = onClickSmallFab)
+                }
+            } else {
+                SmallFab(data = data, onClickSmallFab = onClickSmallFab)
             }
         }
+    }
+}
+
+@Composable
+private fun SmallFab(
+    data: ExpandedFabData,
+    onClickSmallFab: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SmallFloatingActionButton(
+        onClick = {
+            onClickSmallFab()
+            data.onClick()
+        },
+        containerColor = if (data.isEnabled) FloatingActionButtonDefaults.containerColor else Color.Gray,
+        modifier = modifier
+    ) {
+        Icon(
+            imageVector = data.icon,
+            contentDescription = stringResource(id = data.contentDescription),
+        )
     }
 }
 

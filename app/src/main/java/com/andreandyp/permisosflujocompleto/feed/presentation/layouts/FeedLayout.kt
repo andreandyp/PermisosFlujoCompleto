@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.PostAdd
-import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -41,8 +40,11 @@ import com.andreandyp.permisosflujocompleto.feed.presentation.components.PostIte
 fun FeedLayout(
     posts: List<Post>,
     showFeedFab: Boolean,
+    hasCameraPermission: Boolean,
+    hasMediaPermission: Boolean,
     onClickLike: (Post) -> Unit,
     onClickAddPhoto: () -> Unit,
+    onClickAddMedia: () -> Unit,
     onClickAddTextPost: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -61,20 +63,14 @@ fun FeedLayout(
                         ExpandedFabData(
                             icon = Icons.Default.AddAPhoto,
                             contentDescription = R.string.description_add_photo,
-                            isEnabled = false,
+                            isEnabled = hasCameraPermission,
                             onClick = onClickAddPhoto,
                         ),
                         ExpandedFabData(
                             icon = Icons.Default.AddPhotoAlternate,
                             contentDescription = R.string.description_add_image,
-                            isEnabled = false,
-                            onClick = {},
-                        ),
-                        ExpandedFabData(
-                            icon = Icons.Default.VideoCall,
-                            contentDescription = R.string.description_add_video,
-                            isEnabled = false,
-                            onClick = {},
+                            isEnabled = hasMediaPermission,
+                            onClick = onClickAddMedia,
                         ),
                         ExpandedFabData(
                             icon = Icons.Default.PostAdd,
@@ -128,8 +124,11 @@ private fun FeedLayoutPreview() {
             FeedLayout(
                 posts = initialData,
                 showFeedFab = true,
+                hasCameraPermission = true,
+                hasMediaPermission = true,
                 onClickLike = {},
                 onClickAddPhoto = {},
+                onClickAddMedia = {},
                 onClickAddTextPost = {},
             )
         }

@@ -1,6 +1,7 @@
 package com.andreandyp.permisosflujocompleto.core.presentation.activities
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -21,21 +22,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import androidx.window.core.layout.WindowHeightSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
+import com.andreandyp.permisosflujocompleto.core.domain.models.AllowedMediaPost
 import com.andreandyp.permisosflujocompleto.core.presentation.navigation.AppDestinations
 import com.andreandyp.permisosflujocompleto.core.presentation.navigation.PreAppDestinations
 import com.andreandyp.permisosflujocompleto.core.presentation.theme.PermisosFlujoCompletoTheme
 import com.andreandyp.permisosflujocompleto.feed.presentation.components.FeedNavigationBar
 import com.andreandyp.permisosflujocompleto.feed.presentation.components.FeedNavigationDrawer
 import com.andreandyp.permisosflujocompleto.feed.presentation.components.FeedNavigationRail
+import com.andreandyp.permisosflujocompleto.feed.presentation.dialogs.AskForPermissionsDialog
+import com.andreandyp.permisosflujocompleto.feed.presentation.dialogs.DeniedPermissionDialog
+import com.andreandyp.permisosflujocompleto.feed.presentation.dialogs.DeniedPermissionRationaleDialog
 import com.andreandyp.permisosflujocompleto.feed.presentation.navigation.FeedSupportingPane
 import com.andreandyp.permisosflujocompleto.feed.presentation.screens.StartScreen
 import com.andreandyp.permisosflujocompleto.feed.presentation.viewmodels.FeedViewModel
@@ -67,7 +75,64 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable<PreAppDestinations.Main> {
-                            AppNavigation()
+                            AppNavigation(
+                                onClickAddPhoto = {
+                                    appNavController.navigate(
+                                        PreAppDestinations.AskForPermissions(AllowedMediaPost.PHOTO.toString())
+                                    )
+                                },
+                                onClickAddVisualMedia = {
+                                    appNavController.navigate(
+                                        PreAppDestinations.AskForPermissions(AllowedMediaPost.MEDIA.toString())
+                                    )
+                                },
+                            )
+                        }
+                        dialog<PreAppDestinations.AskForPermissions> { backStackEntry ->
+                            val route =
+                                backStackEntry.toRoute<PreAppDestinations.AskForPermissions>()
+                            AskForPermissionsDialog(
+                                allowedMediaPost = AllowedMediaPost.valueOf(route.mediaPost),
+                                onGrantedCameraPermission = appNavController::popBackStack,
+                                onGrantedMediaPermission = appNavController::popBackStack,
+                                onDeniedPermission = { shouldShowRationale ->
+                                    if (shouldShowRationale) {
+                                        appNavController.navigate(
+                                            PreAppDestinations.DeniedPermissionsRationale(
+                                                route.mediaPost,
+                                            )
+                                        ) {
+                                            popUpTo(PreAppDestinations.Main)
+                                        }
+                                    } else {
+                                        appNavController.navigate(PreAppDestinations.DeniedPermissions) {
+                                            popUpTo(PreAppDestinations.Main)
+                                        }
+                                    }
+                                },
+                                onDismiss = appNavController::popBackStack,
+                            )
+                        }
+                        dialog<PreAppDestinations.DeniedPermissionsRationale> { backStackEntry ->
+                            val route =
+                                backStackEntry.toRoute<PreAppDestinations.DeniedPermissionsRationale>()
+                            DeniedPermissionRationaleDialog(
+                                onDismiss = appNavController::popBackStack,
+                                onGrantedCameraPermission = appNavController::popBackStack,
+                                onGrantedMediaPermission = appNavController::popBackStack,
+                                allowedMediaPost = AllowedMediaPost.valueOf(route.mediaPost),
+                                onDeniedPermission = {
+                                    appNavController.navigate(PreAppDestinations.DeniedPermissions) {
+                                        popUpTo(PreAppDestinations.Main)
+                                    }
+                                }
+                            )
+                        }
+                        dialog<PreAppDestinations.DeniedPermissions> {
+                            DeniedPermissionDialog(
+                                onCancel = appNavController::popBackStack,
+                                onAccept = {}
+                            )
                         }
                     }
                 }
@@ -78,9 +143,12 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-private fun AppNavigation() {
+private fun AppNavigation(
+    onClickAddPhoto: () -> Unit,
+    onClickAddVisualMedia: () -> Unit,
+) {
     val navControllerSettings = rememberNavController()
-    val navigator = rememberSupportingPaneScaffoldNavigator()
+    val navigator = rememberSupportingPaneScaffoldNavigator<AllowedMediaPost?>()
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.FEED) }
 
     val adaptiveInfo = currentWindowAdaptiveInfo()
@@ -88,17 +156,20 @@ private fun AppNavigation() {
         currentWindowSize().toSize().toDpSize()
     }
     val navLayoutType = calculateNavLayoutType(adaptiveInfo, windowSize)
-    val isSupportingPaneHidden =
-        navigator.scaffoldValue[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Hidden
-
-    val showFabRail = isSupportingPaneHidden || currentDestination == AppDestinations.SETTINGS
-    val showFeedFab = isSupportingPaneHidden && navLayoutType != NavigationSuiteType.NavigationRail
+    val isMainPaneVisible =
+        navigator.scaffoldValue[SupportingPaneScaffoldRole.Main] == PaneAdaptedValue.Expanded
+    val isSupportingPaneVisible =
+        navigator.scaffoldValue[SupportingPaneScaffoldRole.Supporting] == PaneAdaptedValue.Expanded
+    val showRailFab = isMainPaneVisible || currentDestination == AppDestinations.SETTINGS
+    val showFeedFab =
+        !isSupportingPaneVisible && navLayoutType != NavigationSuiteType.NavigationRail
 
     BackHandler(navigator.canNavigateBack()) {
         navigator.navigateBack()
     }
 
     val feedViewModel = koinViewModel<FeedViewModel>()
+    val context = LocalContext.current
 
     NavigationSuiteScaffoldLayout(
         layoutType = navLayoutType,
@@ -106,10 +177,20 @@ private fun AppNavigation() {
             FeedNavigationSuite(
                 navLayoutType = navLayoutType,
                 currentDestination = currentDestination,
-                showFabRail = showFabRail,
+                showRailFab = showRailFab,
+                hasCameraPermission = false, // TODO: add camera permission
+                hasMediaPermission = false, // TODO: add media permissions
                 onClickNewPost = {
                     currentDestination = AppDestinations.FEED
                     navigator.navigateTo(SupportingPaneScaffoldRole.Supporting)
+                },
+                onClickAddVisualMedia = {
+                    currentDestination = AppDestinations.FEED
+                    Toast.makeText(context, "Ask for media permissions", Toast.LENGTH_SHORT).show()
+                },
+                onClickAddPhoto = {
+                    currentDestination = AppDestinations.FEED
+                    Toast.makeText(context, "Ask for camera permission", Toast.LENGTH_SHORT).show()
                 },
                 onClickItem = { currentDestination = it },
             )
@@ -141,8 +222,12 @@ private fun AppNavigation() {
 private fun FeedNavigationSuite(
     navLayoutType: NavigationSuiteType,
     currentDestination: AppDestinations,
-    showFabRail: Boolean,
+    showRailFab: Boolean,
+    hasCameraPermission: Boolean,
+    hasMediaPermission: Boolean,
     onClickNewPost: () -> Unit,
+    onClickAddVisualMedia: () -> Unit,
+    onClickAddPhoto: () -> Unit,
     onClickItem: (AppDestinations) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -167,9 +252,13 @@ private fun FeedNavigationSuite(
 
         NavigationSuiteType.NavigationRail -> {
             FeedNavigationRail(
-                showFab = showFabRail,
+                showFab = showRailFab,
+                hasCameraPermission = hasCameraPermission,
+                hasMediaPermission = hasMediaPermission,
                 currentDestination = currentDestination,
                 onClickNewPost = onClickNewPost,
+                onClickAddVisualMedia = onClickAddVisualMedia,
+                onClickAddPhoto = onClickAddPhoto,
                 onClickItem = onClickItem,
                 modifier = modifier,
             )
