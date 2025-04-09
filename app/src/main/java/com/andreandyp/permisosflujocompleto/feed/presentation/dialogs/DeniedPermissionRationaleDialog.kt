@@ -25,7 +25,7 @@ fun DeniedPermissionRationaleDialog(
         if (isPermissionGranted) {
             onGrantedCameraPermission()
         } else {
-            // Ask for rationale
+            onDeniedPermission()
         }
     }
     val mediaPermissionLauncher = rememberLauncherForActivityResult(
@@ -34,7 +34,7 @@ fun DeniedPermissionRationaleDialog(
         if (hasMediaPermission(permissions)) {
             onGrantedMediaPermission()
         } else {
-            // Ask for rationale
+            onDeniedPermission()
         }
     }
 

@@ -2,7 +2,10 @@ package com.andreandyp.permisosflujocompleto.feed.presentation.utils
 
 import android.Manifest
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
@@ -61,3 +64,10 @@ val MultiplePermissionsState.hasPartialAccessMediaPermission: Boolean
 
         return hasVisualUserSelected && !hasImagesPermission && !hasVideoPermission
     }
+
+fun Activity.openAppSettings() {
+    Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", packageName, null)
+    ).also(::startActivity)
+}

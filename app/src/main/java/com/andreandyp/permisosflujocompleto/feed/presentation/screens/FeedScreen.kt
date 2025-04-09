@@ -40,14 +40,14 @@ fun FeedScreen(
             if (cameraPermission.status.isGranted) {
                 onClickAddPhoto()
             } else {
-                cameraPermission.launchPermissionRequest()
+                onRequirePermission(AllowedMediaPost.PHOTO)
             }
         },
         onClickAddMedia = {
             if (mediaPermissions.hasPartialAccessMediaPermission || mediaPermissions.allPermissionsGranted) {
                 onClickAddVisualMedia()
             } else {
-                mediaPermissions.launchMultiplePermissionRequest()
+                onRequirePermission(AllowedMediaPost.MEDIA)
             }
         },
         onClickAddTextPost = onClickAddTextPost,

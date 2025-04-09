@@ -1,6 +1,5 @@
 package com.andreandyp.permisosflujocompleto.feed.presentation.navigation
 
-import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
@@ -21,6 +20,7 @@ import com.andreandyp.permisosflujocompleto.feed.presentation.dialogs.DeniedPerm
 import com.andreandyp.permisosflujocompleto.feed.presentation.screens.AskForPermissionsScreen
 import com.andreandyp.permisosflujocompleto.feed.presentation.screens.FeedScreen
 import com.andreandyp.permisosflujocompleto.feed.presentation.screens.NewPostScreen
+import com.andreandyp.permisosflujocompleto.feed.presentation.utils.openAppSettings
 import com.andreandyp.permisosflujocompleto.feed.presentation.viewmodels.FeedViewModel
 import com.andreandyp.permisosflujocompleto.feed.presentation.viewmodels.NewPostViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -156,8 +156,7 @@ fun FeedSupportingPane(
                             onAccept = {
                                 extraPaneNavController.popBackStack()
                                 navigator.navigateBack()
-                                Toast.makeText(activity, "Open app settings", Toast.LENGTH_SHORT)
-                                    .show()
+                                activity.openAppSettings()
                             }
                         )
                     }

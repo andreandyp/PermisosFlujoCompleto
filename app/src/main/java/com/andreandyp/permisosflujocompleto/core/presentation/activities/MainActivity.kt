@@ -2,7 +2,6 @@ package com.andreandyp.permisosflujocompleto.core.presentation.activities
 
 import android.Manifest
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -23,7 +22,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -49,6 +47,7 @@ import com.andreandyp.permisosflujocompleto.feed.presentation.navigation.FeedSup
 import com.andreandyp.permisosflujocompleto.feed.presentation.screens.StartScreen
 import com.andreandyp.permisosflujocompleto.feed.presentation.utils.androidMediaPermissions
 import com.andreandyp.permisosflujocompleto.feed.presentation.utils.hasPartialAccessMediaPermission
+import com.andreandyp.permisosflujocompleto.feed.presentation.utils.openAppSettings
 import com.andreandyp.permisosflujocompleto.feed.presentation.viewmodels.FeedViewModel
 import com.andreandyp.permisosflujocompleto.feed.presentation.viewmodels.StartViewModel
 import com.andreandyp.permisosflujocompleto.settings.presentation.navigation.SettingsDestinations
@@ -138,7 +137,10 @@ class MainActivity : ComponentActivity() {
                         dialog<PreAppDestinations.DeniedPermissions> {
                             DeniedPermissionDialog(
                                 onCancel = appNavController::popBackStack,
-                                onAccept = {}
+                                onAccept = {
+                                    appNavController.popBackStack()
+                                    this@MainActivity.openAppSettings()
+                                }
                             )
                         }
                     }
@@ -176,7 +178,6 @@ private fun AppNavigation(
     }
 
     val feedViewModel = koinViewModel<FeedViewModel>()
-    val context = LocalContext.current
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
 
@@ -195,11 +196,25 @@ private fun AppNavigation(
                 },
                 onClickAddVisualMedia = {
                     currentDestination = AppDestinations.FEED
-                    Toast.makeText(context, "Ask for media permissions", Toast.LENGTH_SHORT).show()
+                    if (mediaPermissions.allPermissionsGranted || mediaPermissions.hasPartialAccessMediaPermission) {
+                        navigator.navigateTo(
+                            SupportingPaneScaffoldRole.Supporting,
+                            AllowedMediaPost.MEDIA,
+                        )
+                    } else {
+                        onClickAddVisualMedia()
+                    }
                 },
                 onClickAddPhoto = {
                     currentDestination = AppDestinations.FEED
-                    Toast.makeText(context, "Ask for camera permission", Toast.LENGTH_SHORT).show()
+                    if (cameraPermission.status.isGranted) {
+                        navigator.navigateTo(
+                            SupportingPaneScaffoldRole.Supporting,
+                            AllowedMediaPost.PHOTO,
+                        )
+                    } else {
+                        onClickAddPhoto()
+                    }
                 },
                 onClickItem = { currentDestination = it },
             )

@@ -55,6 +55,7 @@ fun NewPostScreen(
 
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
+
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -90,7 +91,7 @@ fun NewPostScreen(
             if (cameraPermission.status.isGranted) {
                 photoUri = context.getPhotoUri().also(takePhoto::launch)
             } else {
-                cameraPermission.launchPermissionRequest()
+                onRequirePermission(AllowedMediaPost.PHOTO)
             }
         },
         onClickAddVisualMedia = {
@@ -107,7 +108,7 @@ fun NewPostScreen(
                     bottomSheetState.show()
                 }
 
-                else -> mediaPermissions.launchMultiplePermissionRequest()
+                else -> onRequirePermission(AllowedMediaPost.MEDIA)
             }
         },
         onChangePostDescription = viewModel::onChangePostDescription,
@@ -118,7 +119,7 @@ fun NewPostScreen(
                     if (cameraPermission.status.isGranted) {
                         photoUri = context.getPhotoUri().also(takePhoto::launch)
                     } else {
-                        cameraPermission.launchPermissionRequest()
+                        onRequirePermission(AllowedMediaPost.PHOTO)
                     }
                 }
 
@@ -130,7 +131,7 @@ fun NewPostScreen(
                             bottomSheetState.show()
                         }
                     } else {
-                        mediaPermissions.launchMultiplePermissionRequest()
+                        onRequirePermission(AllowedMediaPost.MEDIA)
                     }
                 }
             }
