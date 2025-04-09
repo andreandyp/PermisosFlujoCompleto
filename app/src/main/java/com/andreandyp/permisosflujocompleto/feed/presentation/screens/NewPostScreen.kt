@@ -2,7 +2,6 @@ package com.andreandyp.permisosflujocompleto.feed.presentation.screens
 
 import android.Manifest
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -88,21 +87,51 @@ fun NewPostScreen(
         state = state,
         onBack = onBack,
         onClickAddPhoto = {
-            Toast.makeText(context, "Ask for camera permission", Toast.LENGTH_SHORT).show()
+            if (cameraPermission.status.isGranted) {
+                photoUri = context.getPhotoUri().also(takePhoto::launch)
+            } else {
+                cameraPermission.launchPermissionRequest()
+            }
         },
         onClickAddVisualMedia = {
-            Toast.makeText(context, "Ask for media permissions", Toast.LENGTH_SHORT).show()
+            when {
+                mediaPermissions.hasPartialAccessMediaPermission -> scope.launch {
+                    viewModel.onAddMedia()
+                    showBottomSheet = true
+                    bottomSheetState.show()
+                }
+
+                mediaPermissions.allPermissionsGranted -> scope.launch {
+                    viewModel.onAddMedia()
+                    showBottomSheet = true
+                    bottomSheetState.show()
+                }
+
+                else -> mediaPermissions.launchMultiplePermissionRequest()
+            }
         },
         onChangePostDescription = viewModel::onChangePostDescription,
         onClickUpload = viewModel::onUploadPost,
         onClickRetry = {
             when (it) {
                 AllowedMediaPost.PHOTO -> {
-                    Toast.makeText(context, "Ask for camera permission", Toast.LENGTH_SHORT).show()
+                    if (cameraPermission.status.isGranted) {
+                        photoUri = context.getPhotoUri().also(takePhoto::launch)
+                    } else {
+                        cameraPermission.launchPermissionRequest()
+                    }
                 }
 
                 AllowedMediaPost.MEDIA -> {
-                    Toast.makeText(context, "Ask for media permissions", Toast.LENGTH_SHORT).show()
+                    if (mediaPermissions.allPermissionsGranted) {
+                        scope.launch {
+                            viewModel.onAddMedia()
+                            showBottomSheet = true
+                            bottomSheetState.show()
+                        }
+                    } else {
+                        mediaPermissions.launchMultiplePermissionRequest()
+                    }
                 }
             }
         },
@@ -116,7 +145,7 @@ fun NewPostScreen(
             scope.launch {
                 bottomSheetState.hide()
                 showBottomSheet = false
-                Toast.makeText(context, "Ask for full media permission", Toast.LENGTH_SHORT).show()
+                mediaPermissions.launchMultiplePermissionRequest()
             }
         },
         onClickMedia = {

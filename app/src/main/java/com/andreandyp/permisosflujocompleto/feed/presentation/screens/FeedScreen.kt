@@ -1,11 +1,9 @@
 package com.andreandyp.permisosflujocompleto.feed.presentation.screens
 
 import android.Manifest
-import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.andreandyp.permisosflujocompleto.core.domain.models.AllowedMediaPost
 import com.andreandyp.permisosflujocompleto.feed.presentation.layouts.FeedLayout
@@ -29,7 +27,6 @@ fun FeedScreen(
     modifier: Modifier = Modifier,
 ) {
     val posts by viewModel.posts.collectAsStateWithLifecycle(emptyList())
-    val context = LocalContext.current
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
 
@@ -40,10 +37,18 @@ fun FeedScreen(
         hasMediaPermission = mediaPermissions.allPermissionsGranted || mediaPermissions.hasPartialAccessMediaPermission,
         onClickLike = viewModel::onClickLike,
         onClickAddPhoto = {
-            Toast.makeText(context, "Ask for camera permission", Toast.LENGTH_SHORT).show()
+            if (cameraPermission.status.isGranted) {
+                onClickAddPhoto()
+            } else {
+                cameraPermission.launchPermissionRequest()
+            }
         },
         onClickAddMedia = {
-            Toast.makeText(context, "Ask for media permissions", Toast.LENGTH_SHORT).show()
+            if (mediaPermissions.hasPartialAccessMediaPermission || mediaPermissions.allPermissionsGranted) {
+                onClickAddVisualMedia()
+            } else {
+                mediaPermissions.launchMultiplePermissionRequest()
+            }
         },
         onClickAddTextPost = onClickAddTextPost,
         modifier = modifier,
