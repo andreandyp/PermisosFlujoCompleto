@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.material3.adaptive.layout)
     implementation(libs.androidx.material3.adaptive.navigation)
     implementation(libs.androidx.compose.icons)
+    implementation(libs.accompanist.permissions)
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
     implementation(libs.navigation.compose)

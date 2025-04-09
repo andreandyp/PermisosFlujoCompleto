@@ -1,5 +1,6 @@
 package com.andreandyp.permisosflujocompleto.feed.presentation.screens
 
+import android.Manifest
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -19,11 +20,17 @@ import com.andreandyp.permisosflujocompleto.core.collectAsEventsWithLifecycle
 import com.andreandyp.permisosflujocompleto.core.domain.models.AllowedMediaPost
 import com.andreandyp.permisosflujocompleto.feed.presentation.layouts.NewPostLayout
 import com.andreandyp.permisosflujocompleto.feed.presentation.state.NewPostEvents
+import com.andreandyp.permisosflujocompleto.feed.presentation.utils.androidMediaPermissions
 import com.andreandyp.permisosflujocompleto.feed.presentation.utils.getPhotoUri
+import com.andreandyp.permisosflujocompleto.feed.presentation.utils.hasPartialAccessMediaPermission
 import com.andreandyp.permisosflujocompleto.feed.presentation.viewmodels.NewPostViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun NewPostScreen(
     allowedMediaPost: AllowedMediaPost?,
@@ -47,6 +54,8 @@ fun NewPostScreen(
         }
     }
 
+    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
+    val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -71,9 +80,9 @@ fun NewPostScreen(
 
     NewPostLayout(
         showBackButton = showBackButton,
-        hasCameraPermission = false, // TODO: check camera permission
-        hasFullMediaPermission = false, // TODO: check media permissions
-        hasPartialMediaPermission = false, // TODO: check media permissions
+        hasCameraPermission = cameraPermission.status.isGranted,
+        hasFullMediaPermission = mediaPermissions.allPermissionsGranted,
+        hasPartialMediaPermission = mediaPermissions.hasPartialAccessMediaPermission,
         showBottomSheet = showBottomSheet,
         bottomSheetState = bottomSheetState,
         state = state,

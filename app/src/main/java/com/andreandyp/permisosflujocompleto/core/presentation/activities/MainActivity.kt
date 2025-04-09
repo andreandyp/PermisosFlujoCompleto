@@ -1,5 +1,6 @@
 package com.andreandyp.permisosflujocompleto.core.presentation.activities
 
+import android.Manifest
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -46,10 +47,16 @@ import com.andreandyp.permisosflujocompleto.feed.presentation.dialogs.DeniedPerm
 import com.andreandyp.permisosflujocompleto.feed.presentation.dialogs.DeniedPermissionRationaleDialog
 import com.andreandyp.permisosflujocompleto.feed.presentation.navigation.FeedSupportingPane
 import com.andreandyp.permisosflujocompleto.feed.presentation.screens.StartScreen
+import com.andreandyp.permisosflujocompleto.feed.presentation.utils.androidMediaPermissions
+import com.andreandyp.permisosflujocompleto.feed.presentation.utils.hasPartialAccessMediaPermission
 import com.andreandyp.permisosflujocompleto.feed.presentation.viewmodels.FeedViewModel
 import com.andreandyp.permisosflujocompleto.feed.presentation.viewmodels.StartViewModel
 import com.andreandyp.permisosflujocompleto.settings.presentation.navigation.SettingsDestinations
 import com.andreandyp.permisosflujocompleto.settings.presentation.navigation.settingsNavigation
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 import org.koin.compose.viewmodel.koinViewModel
 
 class MainActivity : ComponentActivity() {
@@ -141,7 +148,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalPermissionsApi::class)
 @Composable
 private fun AppNavigation(
     onClickAddPhoto: () -> Unit,
@@ -170,6 +177,8 @@ private fun AppNavigation(
 
     val feedViewModel = koinViewModel<FeedViewModel>()
     val context = LocalContext.current
+    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
+    val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
 
     NavigationSuiteScaffoldLayout(
         layoutType = navLayoutType,
@@ -178,8 +187,8 @@ private fun AppNavigation(
                 navLayoutType = navLayoutType,
                 currentDestination = currentDestination,
                 showRailFab = showRailFab,
-                hasCameraPermission = false, // TODO: add camera permission
-                hasMediaPermission = false, // TODO: add media permissions
+                hasCameraPermission = cameraPermission.status.isGranted,
+                hasMediaPermission = mediaPermissions.allPermissionsGranted || mediaPermissions.hasPartialAccessMediaPermission,
                 onClickNewPost = {
                     currentDestination = AppDestinations.FEED
                     navigator.navigateTo(SupportingPaneScaffoldRole.Supporting)
