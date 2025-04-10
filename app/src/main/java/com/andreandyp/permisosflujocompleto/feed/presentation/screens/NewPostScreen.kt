@@ -1,9 +1,15 @@
 package com.andreandyp.permisosflujocompleto.feed.presentation.screens
 
 import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -15,6 +21,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.andreandyp.permisosflujocompleto.R
 import com.andreandyp.permisosflujocompleto.core.collectAsEventsWithLifecycle
 import com.andreandyp.permisosflujocompleto.core.domain.models.AllowedMediaPost
 import com.andreandyp.permisosflujocompleto.feed.presentation.layouts.NewPostLayout
@@ -38,13 +45,6 @@ fun NewPostScreen(
     onBack: () -> Unit,
     onRequirePermission: (AllowedMediaPost) -> Unit,
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    viewModel.events.collectAsEventsWithLifecycle {
-        when (it) {
-            NewPostEvents.GoBack -> onBack()
-        }
-    }
-
     val context = LocalContext.current
     var photoUri = remember<Uri?> { null }
     val takePhoto = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
@@ -52,30 +52,37 @@ fun NewPostScreen(
             viewModel.onNewMedia(photoUri.toString(), AllowedMediaPost.PHOTO)
         }
     }
-
-    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
-    val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
-
+    val pickVisualMedia = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
+        if (uri != null) {
+            viewModel.onNewMedia(uri.toString(), AllowedMediaPost.MEDIA)
+        }
+    }
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(allowedMediaPost) {
-        when (allowedMediaPost) {
-            AllowedMediaPost.PHOTO -> {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    viewModel.events.collectAsEventsWithLifecycle {
+        when (it) {
+            NewPostEvents.GoBack -> onBack()
+            NewPostEvents.LaunchCamera -> {
                 photoUri = context.getPhotoUri().also(takePhoto::launch)
             }
 
-            AllowedMediaPost.MEDIA -> {
-                scope.launch {
-                    viewModel.onAddMedia()
-                    showBottomSheet = true
-                    bottomSheetState.show()
-                }
+            NewPostEvents.ShowAndroidPicker -> callPhotoPicker(pickVisualMedia, context)
+            NewPostEvents.ShowAppPicker -> scope.launch {
+                viewModel.onAddMedia()
+                showBottomSheet = true
+                bottomSheetState.show()
             }
-
-            null -> {}
         }
+    }
+
+    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
+    val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
+
+    LaunchedEffect(Unit) {
+        viewModel.onInit(allowedMediaPost)
     }
 
     NewPostLayout(
@@ -96,6 +103,7 @@ fun NewPostScreen(
         },
         onClickAddVisualMedia = {
             when {
+                state.isPhotoPickerEnabled -> callPhotoPicker(pickVisualMedia, context)
                 mediaPermissions.hasPartialAccessMediaPermission -> scope.launch {
                     viewModel.onAddMedia()
                     showBottomSheet = true
@@ -157,4 +165,19 @@ fun NewPostScreen(
             }
         }
     )
+}
+
+private fun callPhotoPicker(
+    pickVisualMedia: ActivityResultLauncher<PickVisualMediaRequest>,
+    context: Context,
+) {
+    try {
+        pickVisualMedia.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
+    } catch (_: ActivityNotFoundException) {
+        Toast.makeText(
+            context,
+            context.getString(R.string.photo_picker_exception),
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
 }

@@ -52,6 +52,7 @@ fun SettingsScreen(
 
     SettingsLayout(
         state = state,
+        onTogglePhotoPicker = viewModel::onTogglePhotoPicker,
         onClickChangeUserName = onClickChangeUserName,
         onClickRestoreData = onClickRestoreData,
         onClickDeleteData = onClickDeleteData,

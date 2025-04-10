@@ -5,6 +5,7 @@ import com.andreandyp.permisosflujocompleto.core.domain.models.Media
 import java.time.LocalDate
 
 data class NewPostState(
+    val isPhotoPickerEnabled: Boolean = false,
     val userName: String = "",
     val mediaUri: String? = null,
     val newMedia: AllowedMediaPost? = null,

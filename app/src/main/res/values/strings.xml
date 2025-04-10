@@ -17,6 +17,11 @@
     <string name="retry_image_post">Escoger otra imagen</string>
     <string name="retry_video_post">Escoger otro video</string>
     <string name="setting_title">Datos</string>
+    <string name="setting_tweaks_title">Ajustes</string>
+    <string name="description_settings_photo_picker">Habilitar "Photo Picker"</string>
+    <string name="settings_photo_picker_title">Habilitar "Photo Picker"</string>
+    <string name="settings_photo_picker_enabled_summary">Seleccionador de fotos de Android en uso</string>
+    <string name="settings_photo_picker_disabled_summary">Seleccionador de fotos de la app en uso</string>
     <string name="description_settings_user_name">Cambiar nombre</string>
     <string name="settings_user_name_title">Cambiar nombre</string>
     <string name="settings_user_name_summary">Tu nombre es %s</string>
@@ -61,4 +66,5 @@
     <string name="has_partial_access">Solo nos diste acceso a ciertas fotos y videos</string>
     <string name="has_partial_access_add_more">Administrar</string>
     <string name="media_picker_empty_label">No hay archivos para mostrar</string>
+    <string name="photo_picker_exception">Usa el seleccionador de fotos de la app.</string>
 </resources>

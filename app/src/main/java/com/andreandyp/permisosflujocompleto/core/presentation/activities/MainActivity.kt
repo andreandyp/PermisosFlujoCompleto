@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
@@ -178,6 +179,7 @@ private fun AppNavigation(
     }
 
     val feedViewModel = koinViewModel<FeedViewModel>()
+    val isPhotoPickerAvailable by feedViewModel.isPhotoPickerAvailable.collectAsStateWithLifecycle()
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
 
@@ -189,14 +191,19 @@ private fun AppNavigation(
                 currentDestination = currentDestination,
                 showRailFab = showRailFab,
                 hasCameraPermission = cameraPermission.status.isGranted,
-                hasMediaPermission = mediaPermissions.allPermissionsGranted || mediaPermissions.hasPartialAccessMediaPermission,
+                hasMediaPermission = isPhotoPickerAvailable || mediaPermissions.allPermissionsGranted || mediaPermissions.hasPartialAccessMediaPermission,
                 onClickNewPost = {
                     currentDestination = AppDestinations.FEED
                     navigator.navigateTo(SupportingPaneScaffoldRole.Supporting)
                 },
                 onClickAddVisualMedia = {
                     currentDestination = AppDestinations.FEED
-                    if (mediaPermissions.allPermissionsGranted || mediaPermissions.hasPartialAccessMediaPermission) {
+                    if (isPhotoPickerAvailable) {
+                        navigator.navigateTo(
+                            SupportingPaneScaffoldRole.Supporting,
+                            AllowedMediaPost.MEDIA,
+                        )
+                    } else if (mediaPermissions.allPermissionsGranted || mediaPermissions.hasPartialAccessMediaPermission) {
                         navigator.navigateTo(
                             SupportingPaneScaffoldRole.Supporting,
                             AllowedMediaPost.MEDIA,

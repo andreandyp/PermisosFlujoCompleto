@@ -27,6 +27,7 @@ fun FeedScreen(
     modifier: Modifier = Modifier,
 ) {
     val posts by viewModel.posts.collectAsStateWithLifecycle(emptyList())
+    val isPhotoPickerAvailable by viewModel.isPhotoPickerAvailable.collectAsStateWithLifecycle()
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
 
@@ -34,7 +35,7 @@ fun FeedScreen(
         posts = posts,
         showFeedFab = showFeedFab,
         hasCameraPermission = cameraPermission.status.isGranted,
-        hasMediaPermission = mediaPermissions.allPermissionsGranted || mediaPermissions.hasPartialAccessMediaPermission,
+        hasMediaPermission = isPhotoPickerAvailable || mediaPermissions.allPermissionsGranted || mediaPermissions.hasPartialAccessMediaPermission,
         onClickLike = viewModel::onClickLike,
         onClickAddPhoto = {
             if (cameraPermission.status.isGranted) {
@@ -44,7 +45,9 @@ fun FeedScreen(
             }
         },
         onClickAddMedia = {
-            if (mediaPermissions.hasPartialAccessMediaPermission || mediaPermissions.allPermissionsGranted) {
+            if (isPhotoPickerAvailable) {
+                onClickAddVisualMedia()
+            } else if (mediaPermissions.hasPartialAccessMediaPermission || mediaPermissions.allPermissionsGranted) {
                 onClickAddVisualMedia()
             } else {
                 onRequirePermission(AllowedMediaPost.MEDIA)

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.SettingsApplications
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -18,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +37,7 @@ import com.andreandyp.permisosflujocompleto.settings.presentation.state.Settings
 @Composable
 fun SettingsLayout(
     state: SettingsState,
+    onTogglePhotoPicker: (Boolean) -> Unit,
     onClickChangeUserName: () -> Unit,
     onClickRestoreData: () -> Unit,
     onClickDeleteData: () -> Unit,
@@ -55,6 +59,20 @@ fun SettingsLayout(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
+                    text = stringResource(id = R.string.setting_tweaks_title),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(
+                        horizontal = 56.dp,
+                        vertical = 8.dp,
+                    ),
+                )
+                TogglePhotoPickerSetting(
+                    isEnabled = state.photoPickerEnabled,
+                    onToggle = onTogglePhotoPicker,
+                )
+                HorizontalDivider(modifier = Modifier.padding(top = 0.dp, bottom = 16.dp))
+                Text(
                     text = stringResource(id = R.string.setting_title),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary,
@@ -73,6 +91,44 @@ fun SettingsLayout(
                 DeleteAllDataSetting(onClick = onClickDeleteData)
             }
         }
+    }
+}
+
+@Composable
+private fun TogglePhotoPickerSetting(isEnabled: Boolean, onToggle: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .clickable { onToggle(isEnabled.not()) }
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.SettingsApplications,
+            contentDescription = stringResource(id = R.string.description_settings_photo_picker)
+        )
+        Column(
+            modifier = Modifier.padding(vertical = 16.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.settings_photo_picker_title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            if (isEnabled) {
+                Text(
+                    text = stringResource(id = R.string.settings_photo_picker_enabled_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            } else {
+                Text(
+                    text = stringResource(id = R.string.settings_photo_picker_disabled_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Switch(checked = isEnabled, onCheckedChange = onToggle)
     }
 }
 
@@ -173,6 +229,7 @@ private fun PreferencesLayoutEmptyPreferencesPreview() {
         Surface {
             SettingsLayout(
                 state = SettingsState(),
+                onTogglePhotoPicker = {},
                 onClickChangeUserName = {},
                 onClickRestoreData = {},
                 onClickDeleteData = {},

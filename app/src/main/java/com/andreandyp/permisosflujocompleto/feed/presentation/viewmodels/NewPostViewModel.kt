@@ -33,8 +33,27 @@ class NewPostViewModel(
 
     init {
         settingsRepository.preferences.onEach { preferences ->
-            _state.update { it.copy(userName = preferences.userName) }
+            _state.update {
+                it.copy(
+                    userName = preferences.userName,
+                    isPhotoPickerEnabled = preferences.photoPicker,
+                )
+            }
         }.launchIn(viewModelScope)
+    }
+
+    fun onInit(allowedMediaPost: AllowedMediaPost?) = viewModelScope.launch {
+        val isPhotoPickerEnabled = settingsRepository.preferences.first().photoPicker
+        when (allowedMediaPost) {
+            AllowedMediaPost.PHOTO -> _events.send(NewPostEvents.LaunchCamera)
+            AllowedMediaPost.MEDIA -> if (isPhotoPickerEnabled) {
+                _events.send(NewPostEvents.ShowAndroidPicker)
+            } else {
+                _events.send(NewPostEvents.ShowAppPicker)
+            }
+
+            null -> {}
+        }
     }
 
     fun onBack() {

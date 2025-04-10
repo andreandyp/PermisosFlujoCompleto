@@ -142,7 +142,7 @@ fun NewPostLayout(
                 when (state.newMedia) {
                     AllowedMediaPost.PHOTO -> {
                         NewVisualMedia(
-                            hasImagesPermission = hasFullMediaPermission || hasPartialMediaPermission,
+                            hasImagesPermission = state.isPhotoPickerEnabled || hasFullMediaPermission || hasPartialMediaPermission,
                             onClick = onClickAddVisualMedia,
                         )
                     }
@@ -161,7 +161,7 @@ fun NewPostLayout(
                             onClick = onClickAddPhoto,
                         )
                         NewVisualMedia(
-                            hasImagesPermission = hasFullMediaPermission || hasPartialMediaPermission,
+                            hasImagesPermission = state.isPhotoPickerEnabled || hasFullMediaPermission || hasPartialMediaPermission,
                             onClick = onClickAddVisualMedia,
                         )
                     }

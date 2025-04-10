@@ -19,11 +19,17 @@ class SettingsViewModel(
     private val postsRepository: PostsRepository,
 ) : ViewModel() {
     val preferences = settingsRepository.preferences.map {
-        SettingsState(userName = it.userName)
+        SettingsState(photoPickerEnabled = it.photoPicker, userName = it.userName)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(ANDROID_TIMEOUT), SettingsState())
 
     private val _events = Channel<SettingsEvent>()
     val events = _events.receiveAsFlow()
+
+    fun onTogglePhotoPicker(isEnabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.savePhotoPickerConfig(isEnabled)
+        }
+    }
 
     fun updateUserName(name: String) {
         viewModelScope.launch {
