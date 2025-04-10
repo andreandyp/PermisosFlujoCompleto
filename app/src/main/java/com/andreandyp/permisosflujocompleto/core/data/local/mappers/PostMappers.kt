@@ -8,7 +8,7 @@ fun PostEntity.toPost() = Post(
     id = id,
     user = user,
     description = description,
-    imagePath = imagePath,
+    mediaPath = imagePath,
     likes = likes,
     creationDate = OffsetDateTime.parse(creationDate),
 )
@@ -17,7 +17,7 @@ fun Post.toPostEntity() = PostEntity(
     id = id,
     user = user,
     description = description,
-    imagePath = imagePath,
+    imagePath = mediaPath,
     likes = likes,
     creationDate = creationDate.toString(),
 )

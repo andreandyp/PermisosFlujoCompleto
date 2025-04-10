@@ -3,6 +3,7 @@ package com.andreandyp.permisosflujocompleto.settings.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.andreandyp.permisosflujocompleto.core.ANDROID_TIMEOUT
+import com.andreandyp.permisosflujocompleto.core.data.repositories.MediaRepository
 import com.andreandyp.permisosflujocompleto.core.data.repositories.PostsRepository
 import com.andreandyp.permisosflujocompleto.core.data.repositories.SettingsRepository
 import com.andreandyp.permisosflujocompleto.settings.presentation.state.SettingsEvent
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
     private val postsRepository: PostsRepository,
+    private val mediaRepository: MediaRepository,
 ) : ViewModel() {
     val preferences = settingsRepository.preferences.map {
         SettingsState(photoPickerEnabled = it.photoPicker, userName = it.userName)
@@ -48,6 +50,7 @@ class SettingsViewModel(
     fun deleteAllData() {
         viewModelScope.launch {
             postsRepository.deleteAllData()
+            mediaRepository.deleteAllData()
             _events.send(SettingsEvent.AllDataDeleted)
         }
     }

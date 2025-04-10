@@ -3,7 +3,6 @@ package com.andreandyp.permisosflujocompleto.core.data.repositories
 import com.andreandyp.permisosflujocompleto.core.data.local.managers.MediaManager
 import com.andreandyp.permisosflujocompleto.core.domain.models.Media
 import com.andreandyp.permisosflujocompleto.core.domain.models.MediaType
-import com.andreandyp.permisosflujocompleto.core.domain.models.Post
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -40,9 +39,17 @@ class MediaRepository(
         }.groupBy { it.dateAdded.toLocalDate() }
     }
 
-    fun saveMediaPost(post: Post) {
-        post.imagePath?.let {
+    fun saveMediaPost(postMediaPath: String?): String? {
+        return postMediaPath?.let {
             mediaManager.copyToLocalStorage(it)
         }
+    }
+
+    fun removeTempFiles() {
+        mediaManager.removeCachedFiles()
+    }
+
+    fun deleteAllData() {
+        mediaManager.removeAllMediaPost()
     }
 }

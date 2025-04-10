@@ -2,7 +2,6 @@ package com.andreandyp.permisosflujocompleto.feed.presentation.layouts
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -100,16 +99,15 @@ fun FeedLayout(
             }
         } else {
             LazyVerticalGrid(
-                contentPadding = PaddingValues(horizontal = 8.dp),
+                contentPadding = paddingValues,
                 columns = GridCells.Adaptive(minSize = 350.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier.padding(horizontal = 8.dp),
             ) {
                 items(posts) {
                     PostItem(post = it, onClickLike = onClickLike)
                 }
-
             }
         }
     }

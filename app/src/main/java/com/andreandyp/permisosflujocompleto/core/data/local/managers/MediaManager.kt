@@ -7,10 +7,12 @@ import android.os.Build
 import android.provider.MediaStore
 import android.provider.MediaStore.Images
 import android.provider.MediaStore.Video
+import android.webkit.MimeTypeMap
 import androidx.core.bundle.Bundle
 import androidx.core.net.toUri
 import com.andreandyp.permisosflujocompleto.core.data.local.models.LocalMedia
 import com.andreandyp.permisosflujocompleto.feed.presentation.utils.CAMERA_FILE_PREFIX
+import com.andreandyp.permisosflujocompleto.feed.presentation.utils.POST_FILE_PREFIX
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -142,10 +144,16 @@ class MediaManager(
             return@withContext videos
         }
 
-    fun copyToLocalStorage(mediaPath: String) {
+    fun copyToLocalStorage(mediaPath: String): String {
+        val type = contentResolver.getType(mediaPath.toUri())
+        val ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(type)
         val fileName = mediaPath.substringAfterLast("/")
-        val targetFile = File("${context.filesDir}/$fileName")
-        println(targetFile.toString())
+        val targetPath = if (fileName.substringAfterLast(".").isEmpty()) {
+            "${context.filesDir}/$POST_FILE_PREFIX-$fileName"
+        } else {
+            "${context.filesDir}/$POST_FILE_PREFIX-$fileName.$ext"
+        }
+        val targetFile = File(targetPath)
         contentResolver.openInputStream(mediaPath.toUri()).use {
             Files.copy(
                 it,
@@ -154,11 +162,20 @@ class MediaManager(
             )
         }
         removeCachedFiles()
+        return targetFile.toUri().toString()
     }
 
-    private fun removeCachedFiles() {
+    fun removeCachedFiles() {
         context.cacheDir.listFiles()?.filter {
             it.name.contains(CAMERA_FILE_PREFIX)
+        }?.forEach {
+            it.delete()
+        }
+    }
+
+    fun removeAllMediaPost() {
+        context.filesDir.listFiles()?.filter {
+            it.name.contains(POST_FILE_PREFIX)
         }?.forEach {
             it.delete()
         }

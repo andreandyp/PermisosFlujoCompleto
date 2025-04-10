@@ -6,7 +6,7 @@ data class Post(
     val id: Long,
     val user: String,
     val description: String,
-    val imagePath: String?,
+    val mediaPath: String?,
     val likes: Int,
     val creationDate: OffsetDateTime,
 )

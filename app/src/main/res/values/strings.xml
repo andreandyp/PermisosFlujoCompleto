@@ -14,8 +14,7 @@
     <string name="add_media_post">Añade un archivo:</string>
     <string name="replace_media_post">Reemplaza por:</string>
     <string name="retry_photo_post">Escoger otra foto</string>
-    <string name="retry_image_post">Escoger otra imagen</string>
-    <string name="retry_video_post">Escoger otro video</string>
+    <string name="retry_image_post">Escoger otra imagen o video</string>
     <string name="setting_title">Datos</string>
     <string name="setting_tweaks_title">Ajustes</string>
     <string name="description_settings_photo_picker">Habilitar "Photo Picker"</string>

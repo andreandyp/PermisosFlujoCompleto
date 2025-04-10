@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
@@ -46,7 +47,8 @@ fun NewPostScreen(
     onRequirePermission: (AllowedMediaPost) -> Unit,
 ) {
     val context = LocalContext.current
-    var photoUri = remember<Uri?> { null }
+    var photoUri by remember { mutableStateOf<Uri?>(Uri.EMPTY) }
+    var backHandlerEnabled by remember { mutableStateOf(true) }
     val takePhoto = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
         if (it) {
             viewModel.onNewMedia(photoUri.toString(), AllowedMediaPost.PHOTO)
@@ -81,10 +83,15 @@ fun NewPostScreen(
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     val mediaPermissions = rememberMultiplePermissionsState(androidMediaPermissions)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(allowedMediaPost) {
         viewModel.onInit(allowedMediaPost)
     }
 
+    BackHandler(enabled = backHandlerEnabled) {
+        viewModel.onBack()
+        backHandlerEnabled = false
+        onBack()
+    }
     NewPostLayout(
         showBackButton = showBackButton,
         hasCameraPermission = cameraPermission.status.isGranted,
@@ -132,7 +139,9 @@ fun NewPostScreen(
                 }
 
                 AllowedMediaPost.MEDIA -> {
-                    if (mediaPermissions.allPermissionsGranted) {
+                    if (state.isPhotoPickerEnabled) {
+                        callPhotoPicker(pickVisualMedia, context)
+                    } else if (mediaPermissions.allPermissionsGranted) {
                         scope.launch {
                             viewModel.onAddMedia()
                             showBottomSheet = true

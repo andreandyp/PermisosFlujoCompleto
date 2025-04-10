@@ -60,6 +60,7 @@ class NewPostViewModel(
         _state.update {
             it.copy(mediaUri = null, newMedia = null, postDescription = "")
         }
+        mediaRepository.removeTempFiles()
     }
 
     fun onChangePostDescription(description: String) {
@@ -67,17 +68,18 @@ class NewPostViewModel(
     }
 
     fun onUploadPost() = viewModelScope.launch {
+        val savedMediaPath = mediaRepository.saveMediaPost(_state.value.mediaUri)
         val user = settingsRepository.preferences.first().userName
         val newPost = Post(
             0L,
             user,
             _state.value.postDescription,
-            _state.value.mediaUri,
+            savedMediaPath,
             0,
             OffsetDateTime.now(),
         )
         postsRepository.addPost(newPost)
-        mediaRepository.saveMediaPost(newPost)
+
         _state.update {
             it.copy(postDescription = "", mediaUri = null)
         }

@@ -65,7 +65,7 @@ fun PostItem(
                         )
                     } else {
                         AsyncImage(
-                            model = post.imagePath,
+                            model = post.mediaPath,
                             contentDescription = stringResource(id = R.string.description_post_media_feed),
                             modifier = Modifier.fillMaxWidth()
                         )

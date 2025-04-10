@@ -16,7 +16,7 @@ val initialData = listOf(
         id = 1L,
         user = "André",
         description = "¡Bienvenido a ésta app de Permisos!",
-        imagePath = null,
+        mediaPath = null,
         likes = 999,
         creationDate = OffsetDateTime.now(),
     ),
@@ -24,7 +24,7 @@ val initialData = listOf(
         id = 2L,
         user = "André",
         description = "Este es un post de prueba. Prueba a añadir una publicación.",
-        imagePath = null,
+        mediaPath = null,
         likes = 0,
         creationDate = OffsetDateTime.now(),
     )
